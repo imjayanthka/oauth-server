@@ -1,5 +1,5 @@
 'use strict';
-const admin = require('./admin');
+const admin = require('../config/admin');
 var db = admin.database()
 
 

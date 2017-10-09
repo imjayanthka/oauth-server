@@ -1,5 +1,5 @@
 'use strict';
-const admin = require('./admin');
+const admin = require('../config/admin');
 var auth = admin.auth()
 var db = admin.database()
 var refString = 'accessTokens'

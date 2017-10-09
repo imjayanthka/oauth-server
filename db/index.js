@@ -1,5 +1,5 @@
 'use strict';
-const admin = require('./admin');
+const admin = require('../config/admin');
 const users = require('./users');
 const clients = require('./clients');
 const accessTokens = require('./access_tokens');
