@@ -17,10 +17,6 @@ module.exports.find = (key, done) => {
 }
 
 module.exports.findByUserIdAndClientId = (userId, clientId, done) => {
-    // for (let token of tokens) {
-    //     if (tokens[token].userId === userId && tokens[token].clientId === clientId) return done(null, token);
-    // }
-    // return done(new Error('Token Not Found'));
     var ref = db.ref(refString)
     ref.orderByKey().equalTo(userId).on("value", function (snapshot) {
         // console.log(snapshot.val())
@@ -30,17 +26,17 @@ module.exports.findByUserIdAndClientId = (userId, clientId, done) => {
             let token;
             snapshot.forEach(function(item){
                 if(item.clientId === clientId){
-                    done(null, item.key)
+                   return done(null, item.key)
                 } else {
-                    done(new Error('Token Not Found'))
+                    return done(new Error('Token Not Found'))
                 }
             })
         } else {
             //no snapshots
-            done(new Error('Token Not Found'))
+            return done(new Error('Token Not Found'))
         }
     }, function(error){
-        done(new Error('Token Not Found'))
+        return done(new Error('Token Not Found'))
     });
 };
 

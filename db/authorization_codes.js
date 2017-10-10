@@ -14,13 +14,12 @@ module.exports.find = (key, done) => {
 }
 
 module.exports.save = (code, clientId, redirectUri, userId, done) => {
+    console.log('Log it called')
     var ref = db.ref(refString)
-    console.log(clientId, redirectUri, userId)
-    console.log('-------------------------------')
     ref.child(code).set({
         clientId: clientId,
         redirectUri: redirectUri,
         userId: userId
     })
-    done()
+    return done(null)
 }

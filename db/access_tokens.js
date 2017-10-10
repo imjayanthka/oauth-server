@@ -12,7 +12,6 @@ module.exports.createCustomToken = (id, done) => {
             return done(null, customToken)
         })
         .catch(function (error) {
-            console.log("Error creating custom token:", error);
             return done(error)
         })
 }
@@ -20,9 +19,9 @@ module.exports.createCustomToken = (id, done) => {
 module.exports.find = (key, done) => {
     var ref = db.ref(refString)
     ref.orderByKey().equalTo(key).on('value', function(snapshot){
-        return done(null, snapshot.val())
+         return done(null, snapshot.val())
     }, function(err){
-        return done(new Error('Token not found'))
+         return done(new Error('Token not found'))
     })
 }
 
@@ -31,43 +30,44 @@ module.exports.findByUserIdAndClientId = (userId, clientId, done) => {
     console.log(clientId)
     console.log('++++++++++++++++++++++++++++++++++++++++++++')
     var ref = db.ref(refString)
-    ref.equalTo(userId).on("value", function (snapshot) {
-        console.log(snapshot.val())
+    ref.on("value", function (snapshot) {
         if(snapshot.val()){
             //Snapshots exsits
             let token;
             snapshot.forEach(function(item){
-                console.log(item)
-                if(item.clientId === clientId){
+                console.log(item.key)
+                if(item.val().clientId === clientId && item.val().userId === userId){
                     console.log('*********=================*************')
-                    done(null, item.accessToken)
+                    return done(null, item.val().accessToken, item.key)
                 } else {
                     console.log('*********-----------------*************')
-                    done(new Error('Token Not Found'))
+                    return done(new Error('Token Not Found'))
                 }
             })
         } else {
             //no snapshots
-            console.log('*********+++++++++++++*************')
-            done(new Error('Token Not Found'))
+            console.log('*********+++++No access token++++++++*************')
+            return done(new Error('Token Not Found'))
         }
     }, function(error){
         console.log('**********************')
-        done(new Error('Token Not Found'))
+        return done(new Error('Token Not Found'))
     });
 };
 
 
-module.exports.updateAccessToken = (oAccessToken, newAccessToken, expirationDate, userId, clientId, done) => {
-    var ref = db.ref(refString)
-    ref.orderByKey().equalTo(oAccessToken).remove()
-    ref.push({
+module.exports.updateAccessToken = (key, oAccessToken, newAccessToken, expirationDate, userId, clientId, done) => {
+    var data = {
         accessToken: newAccessToken,
         expirationDate: expirationDate,
         clientId: clientId,
-        userId: userId 
+        userId: userId  
+    }
+    var ref = db.ref(refString+'/'+key)
+    ref.set(data, function(error){
+        if(error) done(error)
+        return done(null)
     })
-    done()
 }
 
 
@@ -79,5 +79,5 @@ module.exports.save = (token, expirationDate, userId, clientId, done) => {
         clientId: clientId,
         userId: userId
     })
-    done()
+    return done(null)
 }

@@ -33,4 +33,4 @@ app.get('/dialog/authorize', routes.oauth2.authorization);
 app.post('/dialog/authorize/decision', routes.oauth2.decision);
 app.post('/oauth/token', routes.oauth2.token);
 
-app.listen(process.env.PORT || 3000);
+app.listen(process.env.PORT || 4000);

@@ -27,7 +27,7 @@ server.serializeClient((client, done) => done(null, client.id));
 
 server.deserializeClient((id, done) => {
   db.clients.findById(id, (error, client) => {
-    if (error) return done(error);
+    if (error) return done(error)
     return done(null, client);
   });
 });
@@ -47,12 +47,10 @@ server.deserializeClient((id, done) => {
 // values, and will be exchanged for an access token.
 
 server.grant(oauth2orize.grant.code((client, redirectUri, user, ares, done) => {  
-  // console.log('Firing Code')
+  console.log('Firing Code')
   const code = utils.getUid(16);
   db.authorizationCodes.save(code, client.clientId, redirectUri, user.uid, (error) => {
     if (error) return done(error);
-    // console.log(code)
-    // console.log('*************************')
     return done(null, code);
   });
 }));
@@ -81,18 +79,22 @@ server.grant(oauth2orize.grant.token((client, user, ares, done) => {
 server.exchange(oauth2orize.exchange.code((client, code, redirectUri, done) => {
   console.log('Some other token exchange is fired')
   db.authorizationCodes.find(code, (error, authCode) => {
+    console.log('here')
+    console.log(authCode)
     if (error) return done(error);
     if (client.clientId !== authCode.clientId) return done(null, false);
     if (redirectUri !== authCode.redirectUri) return done(null, false);
-    
     db.accessTokens.createCustomToken(authCode.userId, (error, token) => {
+      console.log('Created a token')
       if(error) return done(error)
       if(!token) return done(null, false)
       const refreshToken = utils.getUid(256)
       let expirationDate = new Date(new Date().getTime() + (3600 * 1000))
       db.accessTokens.save(token, expirationDate, authCode.userId, authCode.clientId, (error) => {
+        console.log('Acceess token save')
         if (error) return done(error);
         db.refreshTokens.save(refreshToken, authCode.clientId, authCode.userId, (error) => {
+          console.log('Request token saved')
           if (error) return done(error)
           return done(null, token, refreshToken, { expires_in: expirationDate })
         })
@@ -117,7 +119,7 @@ server.exchange(oauth2orize.exchange.password((client, username, password, scope
     db.users.findByUsername(username, (error, user) => {
       if (error) return done(error);
       if (!user) return done(null, false);
-      if (password !== user.password) return done(null, false);
+      if (password !== user.password) done(null, false);
       // Everything validated, return the token
       const token = utils.getUid(256);
       db.accessTokens.save(token, user.uid, client.clientId, (error) => {
@@ -160,23 +162,23 @@ server.exchange(oauth2orize.exchange.clientCredentials((client, scope, done) => 
 server.exchange(oauth2orize.exchange.refreshToken((client, refreshToken, scope, done) => {
   console.log("Exchange")
   db.refreshTokens.find(refreshToken, (error, token) => {
-    if(error) return done(error);
-    if(!token) return done(null, false);
+    if (error) return done(error);
+    if (!token) return done(null, false);
     if (client.clientId !== token[refreshToken].clientId) return done(null, false)
     console.log('*********client**********')
     db.accessTokens.createCustomToken(token[refreshToken].userId, (error, newAccessToken) => {
       console.log(newAccessToken)
-      if(error) return done(error)
+      if (error) return done(error)
       console.log('********error***********')
-      if(!newAccessToken) return done(null, false)
+      if (!newAccessToken) return done(null, false)
       console.log('********token***********')
       var expirationDate = new Date(new Date().getTime() + (3600 * 1000))
-      db.accessTokens.findByUserIdAndClientId(token[refreshToken].userId, token[refreshToken].clientId, (error, oAccessToken) => {
+      db.accessTokens.findByUserIdAndClientId(token[refreshToken].userId, token[refreshToken].clientId, (error, oAccessToken, key) => {
         if (error) return done(error)
         console.log('********error 2***********')
         if (!oAccessToken) return done(null, false)
         console.log('********token 2***********')
-        db.accessTokens.updateAccessToken(oAccessToken, newAccessToken, expirationDate, token.userId, token.clientId, (error) => {
+        db.accessTokens.updateAccessToken(key, oAccessToken, newAccessToken, expirationDate, token[refreshToken].userId, token[refreshToken].clientId, (error) => {
           if (error) return done(error);
           console.log('********error 3***********')
           return done(null, newAccessToken, refreshToken, { expires_in: expirationDate });
@@ -217,20 +219,16 @@ module.exports.authorization = [
     });
   }, (client, user, done) => {
     // Check if grant request qualifies for immediate approval
-    
     // Auto-approve
     if (client.isTrusted) return done(null, true);
-    
     db.accessTokens.findByUserIdAndClientId(user.uid, client.clientId, (error, token) => {
       // Auto-approve
       if (token) return done(null, true);
-      
       // Otherwise ask user
       return done(null, false);
     });
   }),
   (request, response) => {
-    console.log('here')
     response.render('dialog', { transactionId: request.oauth2.transactionID, user: request.user, client: request.oauth2.client });
   },
 ];
@@ -260,15 +258,3 @@ exports.token = [
   server.token(),
   server.errorHandler(),
 ];
-
-
-// function(req, res, next) {
-//   console.log(req.body)
-//   db.clients.findByClientId(req.body.clientId, (error, client) => {
-//     if (error) return next(error);
-//     if (!client) return next(null, false);
-//     if (client.clientSecret !== req.body.clientSecret) return next(null, false);
-//     console.log(client)
-//     return next(null, client);
-//   });
-// }

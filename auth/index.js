@@ -19,37 +19,29 @@ const db = require('../db');
  */
 passport.use(new LocalStrategy(
     (username, password, done) => {
-      // db.users.findByUsername(username, (error, user) => {
-      //   console.log(user)
-      //   console.log(user.passwordHash)        
-      //   console.log('***********************')
-      //   if (error) return done(error);
-      //   if (!user) return done(null, false);
-      //   bcrypt.compare(password, user.passwordHash, function (err, res) {
-      //     if(res == true){
-      //       console.log('true')
-      //       return done(null, user);
-      //     }
-      //     else {
-      //       console.log('false')
-      //       return done(null, false)
-      //     }
-      //   });
-      // });
-      firebase.auth().signInWithEmailAndPassword(username, password)
-      .then(function (user){
-        // console.log(firebase.auth().currentUser)
-        // console.log("*************************")
-        done(null, firebase.auth().currentUser)
+      db.admin.auth().getUserByEmail(username)
+      .then(function(user){
+        //Exsists
+        return done(null, user)
       })
-      .catch(function (error) {
-        // Handle Errors here.
+      .catch(function(error){
+        //check error meddae
         var errorCode = error.code;
         var errorMessage = error.message;
-        // console.log(errorCode +" : "+ errorMessage)
-        // ...
-        done(null, false)
-      });
+        //Create new user
+        db.admin.auth().createUser({
+          email: username,
+          emailVerified: false,
+          password: password
+        })
+        .then(function (userRecord) {
+          // See the UserRecord reference doc for the contents of userRecord.
+          return done(null, userRecord);
+        })
+        .catch(function (error) {
+          return done(null, false)
+        });
+      })
     }
   ));
 
@@ -66,9 +58,6 @@ passport.use(new LocalStrategy(
    * the specification, in practice it is quite common.
    */
   function verifyClient(clientId, clientSecret, done) {
-    console.log(clientId)
-    console.log(clientSecret)
-    console.log("************************************")
     db.clients.findByClientId(clientId, (error, client) => {
       if (error) return done(error);
       if (!client) return done(null, false);
@@ -122,6 +111,5 @@ passport.use(new LocalStrategy(
   passport.serializeUser((user, done) => done(null, user.uid));
 
   passport.deserializeUser((id, done) => {
-    console.log(id)
     db.users.findById(id, (error, user) => done(error, user));
   });

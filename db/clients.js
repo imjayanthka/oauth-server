@@ -13,8 +13,8 @@ module.exports.findById = (id, done) => {
 };
 
 module.exports.findByClientId = (clientId, done) => {
-    console.log(clientId)
-    console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+    // console.log(clientId)
+    // console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
     for (let i = 0, len = clients.length; i < len; i++) {
         if (clients[i].clientId === clientId) return done(null, clients[i]);
     }
