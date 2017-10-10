@@ -1,8 +1,7 @@
 'use strict';
 
 const clients = [
-    { id: '1', name: 'Samplr', clientId: 'abc123', clientSecret: 'ssh-secret', isTrusted: false },
-    { id: '2', name: 'Samplr2', clientId: 'xyz123', clientSecret: 'ssh-password', isTrusted: true },
+    { id: '1', name: 'Google API', clientId: '698556221027-dn7qgjtsgr84ih6k0a4t6a4ntlck7vm4.apps.googleusercontent.com', clientSecret: 't95CBT3uXx7095L3PTJydWLD', isTrusted: false }
 ];
 
 module.exports.findById = (id, done) => {

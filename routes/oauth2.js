@@ -89,7 +89,7 @@ server.exchange(oauth2orize.exchange.code((client, code, redirectUri, done) => {
       if(error) return done(error)
       if(!token) return done(null, false)
       const refreshToken = utils.getUid(256)
-      let expirationDate = new Date(new Date().getTime() + (3600 * 1000))
+      let expirationDate = 36000
       db.accessTokens.save(token, expirationDate, authCode.userId, authCode.clientId, (error) => {
         console.log('Acceess token save')
         if (error) return done(error);
@@ -165,23 +165,17 @@ server.exchange(oauth2orize.exchange.refreshToken((client, refreshToken, scope, 
     if (error) return done(error);
     if (!token) return done(null, false);
     if (client.clientId !== token[refreshToken].clientId) return done(null, false)
-    console.log('*********client**********')
     db.accessTokens.createCustomToken(token[refreshToken].userId, (error, newAccessToken) => {
       console.log(newAccessToken)
       if (error) return done(error)
-      console.log('********error***********')
       if (!newAccessToken) return done(null, false)
-      console.log('********token***********')
-      var expirationDate = new Date(new Date().getTime() + (3600 * 1000))
+      var expirationDate = 36000
       db.accessTokens.findByUserIdAndClientId(token[refreshToken].userId, token[refreshToken].clientId, (error, oAccessToken, key) => {
         if (error) return done(error)
-        console.log('********error 2***********')
         if (!oAccessToken) return done(null, false)
-        console.log('********token 2***********')
         db.accessTokens.updateAccessToken(key, oAccessToken, newAccessToken, expirationDate, token[refreshToken].userId, token[refreshToken].clientId, (error) => {
           if (error) return done(error);
-          console.log('********error 3***********')
-          return done(null, newAccessToken, refreshToken, { expires_in: expirationDate });
+          return done(null, newAccessToken, { expires_in: expirationDate });
         })
       }) 
     })
